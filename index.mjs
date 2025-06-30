@@ -1,28 +1,24 @@
 import express from 'express';
+import fetch from 'node-fetch';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Este es el Universe ID correcto
 const PLACE_ID = "8036641581";
 
 app.get('/gamepasses', async (req, res) => {
-  try {
-    const url = `https://games.roblox.com/v1/games/${PLACE_ID}/game-passes`;
-    const response = await fetch(url);
-    const text = await response.text(); // obtenemos texto aunque haya error
+    try {
+        const url = `https://catalog.roblox.com/v1/search/items?category=11&creatorTargetId=${PLACE_ID}&limit=30`;
+        const response = await fetch(url);
+        const data = await response.json();
 
-    if (!response.ok) {
-      console.error("Error de Roblox:", text);
-      return res.status(500).json({ error: 'Error al obtener game passes', raw: text });
+        res.json(data.data || []);
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ error: 'Error en el servidor' });
     }
-
-    const data = JSON.parse(text);
-    res.json(data.data);
-  } catch (error) {
-    res.status(500).json({ error: 'Error en el servidor', details: error.message });
-  }
 });
-
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
